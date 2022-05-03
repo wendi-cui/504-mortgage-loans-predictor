@@ -1,10 +1,9 @@
 import dash
 from dash import dcc, html
-import plotly.graph_objs as go
 import pickle
-import json
 import pandas as pd
 import numpy as np
+import plotly.graph_objs as go
 from dash.dependencies import Input, Output, State
 
 
@@ -13,7 +12,21 @@ myheading1='Predicting Mortgage Loan Approval'
 image1='ames_welcome.jpeg'
 tabtitle = 'Mortgage Loans'
 sourceurl = 'https://www.kaggle.com/burak3ergun/loan-data-set'
-githublink = 'https://github.com/austinlasseter/mortgage-loan-prediction'
+githublink = 'https://github.com/plotly-dash-apps/504-mortgage-loans-predictor'
+
+
+########### Model featurse
+features = ['Credit_History',
+'LoanAmount',
+'Loan_Amount_Term',
+'ApplicantIncome',
+'CoapplicantIncome',
+ 'Property_Area',
+ 'Gender',
+ 'Education',
+  'Self_Employed'
+ ]
+
 
 ########### open the pickle files ######
 # dataframes for visualization
@@ -40,17 +53,8 @@ filename = open('model_components/loan_approval_loan_amount.pkl', 'rb')
 ss_scaler3 = pickle.load(filename)
 filename.close()
 
-########### Write a function to preprocess & predict
-features = ['Credit_History',
-'LoanAmount',
-'Loan_Amount_Term',
-'ApplicantIncome',
-'CoapplicantIncome',
- 'Property_Area',
- 'Gender',
- 'Education',
-  'Self_Employed'
- ]
+
+####### FUNCTIONS #######
 
 # Create a function that can take any 8 valid inputs & make a prediction
 def make_predictions(listofargs, Threshold):
@@ -99,121 +103,11 @@ def make_predictions(listofargs, Threshold):
         return 'Invalid inputs','Invalid inputs','Invalid inputs'
 
 
-########### Initiate the app
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-server = app.server
-app.title=tabtitle
-
-########### Set up the layout
-app.layout = html.Div(children=[
-    html.H1(myheading1),
-
-    html.Div([
-        html.Div(
-            [dcc.Graph(id='fig1',style={'width': '90vh', 'height': '90vh'}),
-            ], className='eight columns'),
-        html.Div([
-                html.H3("Features"),
-                html.Div('Credit History'),
-                dcc.Input(id='Credit_History', value=1, type='number', min=0, max=1, step=1),
-                html.Div('Loan Amount (thousands)'),
-                dcc.Input(id='LoanAmount', value=100, type='number', min=10, max=250, step=10),
-                html.Div('Term (months)'),
-                dcc.Input(id='Loan_Amount_Term', value=360, type='number', min=120, max=480, step=50),
-                html.Div('Applicant Monthly Income'),
-                dcc.Input(id='ApplicantIncome', value=5500, type='number', min=0, max=6000, step=50),
-                html.Div('Co-Applicant Monthly Income'),
-                dcc.Input(id='CoapplicantIncome', value=2500, type='number', min=0, max=6000, step=10),
-                html.Div('Property Area'),
-                dcc.Dropdown(id='Property_Area',
-                    options=[{'label': i, 'value': i} for i in ['Semiurban','Urban','Rural']],
-                    value='Urban'),
-                html.Div('Gender'),
-                dcc.Dropdown(id='Gender',
-                    options=[{'label': i, 'value': i} for i in ['Male', 'Female']],
-                    value='Female'),
-                html.Div('Education'),
-                dcc.Dropdown(id='Education',
-                    options=[{'label': i, 'value': i} for i in ['Graduate', 'Not Graduate']],
-                    value='Graduate'),
-                html.Div('Self Employed'),
-                dcc.Dropdown(id='Self_Employed',
-                    options=[{'label': i, 'value': i} for i in ['No','Yes']],
-                    value='No'),
-                html.Div('Approval Threshold'),
-                dcc.Input(id='Threshold', value=50, type='number', min=0, max=100, step=1),
-
-            ], className='two columns'),
-            html.Div([
-                html.H3('Predictions'),
-                html.Button(children='Submit', id='submit-val', n_clicks=0,
-                                style={
-                                'background-color': 'red',
-                                'color': 'white',
-                                'margin-left': '5px',
-                                'verticalAlign': 'center',
-                                'horizontalAlign': 'center'}
-                                ),
-                html.Div('Predicted Status:'),
-                html.Div(id='PredResults'),
-                html.Br(),
-                html.Div('Probability of Approval:'),
-                html.Div(id='ApprovalProb'),
-                html.Br(),
-                html.Div('Probability of Denial:'),
-                html.Div(id='DenialProb')
-            ], className='two columns')
-        ], className='twelve columns',
-    ),
-
-    html.Br(),
-    html.A('Code on Github', href=githublink),
-    html.Br(),
-    html.A("Data Source", href=sourceurl),
-    ]
-)
 
 
-######### Define Callback: Predictions
-@app.callback(
-     Output(component_id='PredResults', component_property='children'),
-     Output(component_id='ApprovalProb', component_property='children'),
-     Output(component_id='DenialProb', component_property='children'),
-     Input(component_id='submit-val', component_property='n_clicks'),
-     State(component_id='Credit_History', component_property='value'),
-     State(component_id='LoanAmount', component_property='value'),
-     State(component_id='Loan_Amount_Term', component_property='value'),
-     State(component_id='ApplicantIncome', component_property='value'),
-     State(component_id='CoapplicantIncome', component_property='value'),
-     State(component_id='Property_Area', component_property='value'),
-     State(component_id='Gender', component_property='value'),
-     State(component_id='Education', component_property='value'),
-     State(component_id='Self_Employed', component_property='value'),
-     State(component_id='Threshold', component_property='value')
-    )
-def func(*args):
-    listofargs=[arg for arg in args[:9]]
-    return make_predictions(listofargs, args[9])
-
-
-######### Define Callback: Visualization
-
-@app.callback(
-            Output(component_id='fig1', component_property='figure'),
-            Input(component_id='submit-val', component_property='n_clicks'),
-            State(component_id='Credit_History', component_property='value'),
-            State(component_id='LoanAmount', component_property='value'),
-            State(component_id='Loan_Amount_Term', component_property='value'),
-            State(component_id='ApplicantIncome', component_property='value'),
-            State(component_id='CoapplicantIncome', component_property='value'),
-            State(component_id='Property_Area', component_property='value'),
-            State(component_id='Gender', component_property='value'),
-            State(component_id='Education', component_property='value'),
-            State(component_id='Self_Employed', component_property='value')
-    )
+## FUNCTION FOR VISUALIZATION
 def make_loans_cube(*args):
-    newdata=pd.DataFrame([args], columns=features)
+    newdata=pd.DataFrame([args[:9]], columns=features)
     newdata['Combined_Income']=newdata['ApplicantIncome'] + newdata['CoapplicantIncome']
 
     trace0=go.Scatter3d(
@@ -292,6 +186,130 @@ def make_loans_cube(*args):
                     ))
     fig=go.Figure([trace0, trace1, trace2], layout)
     return fig
+
+
+
+
+
+########### Initiate the app
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+app.title=tabtitle
+
+########### Set up the layout
+app.layout = html.Div(children=[
+    html.H1(myheading1),
+
+    html.Div([
+        html.Div(
+            [dcc.Graph(id='fig1',style={'width': '90vh', 'height': '90vh'}),
+            ], className='eight columns'),
+        html.Div([
+                html.H3("Features"),
+                html.Div('Credit History'),
+                dcc.Input(id='Credit_History', value=1, type='number', min=0, max=1, step=1),
+                html.Div('Loan Amount (thousands)'),
+                dcc.Input(id='LoanAmount', value=100, type='number', min=10, max=250, step=10),
+                html.Div('Term (months)'),
+                dcc.Input(id='Loan_Amount_Term', value=360, type='number', min=120, max=480, step=50),
+                html.Div('Applicant Monthly Income'),
+                dcc.Input(id='ApplicantIncome', value=5500, type='number', min=100, max=6000, step=100),
+                html.Div('Co-Applicant Monthly Income'),
+                dcc.Input(id='CoapplicantIncome', value=2500, type='number', min=0, max=6000, step=100),
+                html.Div('Property Area'),
+                dcc.Dropdown(id='Property_Area',
+                    options=[{'label': i, 'value': i} for i in ['Semiurban','Urban','Rural']],
+                    value='Urban'),
+                html.Div('Gender'),
+                dcc.Dropdown(id='Gender',
+                    options=[{'label': i, 'value': i} for i in ['Male', 'Female']],
+                    value='Female'),
+                html.Div('Education'),
+                dcc.Dropdown(id='Education',
+                    options=[{'label': i, 'value': i} for i in ['Graduate', 'Not Graduate']],
+                    value='Graduate'),
+                html.Div('Self Employed'),
+                dcc.Dropdown(id='Self_Employed',
+                    options=[{'label': i, 'value': i} for i in ['No','Yes']],
+                    value='No'),
+                html.Div('Approval Threshold'),
+                dcc.Input(id='Threshold', value=50, type='number', min=0, max=100, step=1),
+
+            ], className='two columns'),
+            html.Div([
+                html.H3('Predictions'),
+                html.Button(children='Submit', id='submit-val', n_clicks=0,
+                                style={
+                                'background-color': 'red',
+                                'color': 'white',
+                                'margin-left': '5px',
+                                'verticalAlign': 'center',
+                                'horizontalAlign': 'center'}
+                                ),
+                html.Div('Predicted Status:'),
+                html.Div(id='PredResults'),
+                html.Br(),
+                html.Div('Probability of Approval:'),
+                html.Div(id='ApprovalProb'),
+                html.Br(),
+                html.Div('Probability of Denial:'),
+                html.Div(id='DenialProb')
+            ], className='two columns')
+        ], className='twelve columns',
+    ),
+
+    html.Br(),
+    html.A('Code on Github', href=githublink),
+    html.Br(),
+    html.A("Data Source", href=sourceurl),
+    ]
+)
+
+
+######### Define Callback: Predictions
+@app.callback(
+     Output(component_id='PredResults', component_property='children'),
+     Output(component_id='ApprovalProb', component_property='children'),
+     Output(component_id='DenialProb', component_property='children'),
+
+     State(component_id='Credit_History', component_property='value'),
+     State(component_id='LoanAmount', component_property='value'),
+     State(component_id='Loan_Amount_Term', component_property='value'),
+     State(component_id='ApplicantIncome', component_property='value'),
+     State(component_id='CoapplicantIncome', component_property='value'),
+     State(component_id='Property_Area', component_property='value'),
+     State(component_id='Gender', component_property='value'),
+     State(component_id='Education', component_property='value'),
+     State(component_id='Self_Employed', component_property='value'),
+     State(component_id='Threshold', component_property='value'),
+
+     Input(component_id='submit-val', component_property='n_clicks'),
+    )
+def func(*args):
+    listofargs=[arg for arg in args[:9]]
+    return make_predictions(listofargs, args[9])
+
+
+######### Define Callback: Visualization
+
+@app.callback(
+            Output(component_id='fig1', component_property='figure'),
+
+            State(component_id='Credit_History', component_property='value'),
+            State(component_id='LoanAmount', component_property='value'),
+            State(component_id='Loan_Amount_Term', component_property='value'),
+            State(component_id='ApplicantIncome', component_property='value'),
+            State(component_id='CoapplicantIncome', component_property='value'),
+            State(component_id='Property_Area', component_property='value'),
+            State(component_id='Gender', component_property='value'),
+            State(component_id='Education', component_property='value'),
+            State(component_id='Self_Employed', component_property='value'),
+
+            Input(component_id='submit-val', component_property='n_clicks'),
+    )
+def vizfunc(*args):
+    return make_loans_cube(*args)
 
 
 ############ Deploy
