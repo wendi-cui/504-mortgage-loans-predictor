@@ -1,7 +1,7 @@
 # Mortgage Loan Prediction
 
 ## Deployed app:
-Application deployed on Heroku: [link](https://loan-approval-classifier-adv.herokuapp.com/)
+Application deployed on Heroku: [link](https://mortgage-loans-predictor-app.herokuapp.com/)
 
 ## Problem Statement:
 Dream Housing Finance company deals in home mortgage loans. They have a presence across all urban, semi urban and rural areas. The Customer first applies for a home loan after that company validates the customer eligibility for loan. The Company wants to automate the loan eligibility process in real time based on customer details provided while filling out the online application form.
@@ -20,7 +20,7 @@ Dream Housing Finance company deals in home mortgage loans. They have a presence
 3. Create artificial data & make predictions
 4. Visualize the outputs
 
-## Final Application: `app.py` [link](https://loan-approval-classifier-adv.herokuapp.com/)
+## Final Application: `app.py`
 1. Deployed on Heroku
 2. Receives user inputs on all features
 3. Makes predictions about loan status and probability
