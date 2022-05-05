@@ -12,7 +12,7 @@ myheading1='Predicting Mortgage Loan Approval'
 image1='ames_welcome.jpeg'
 tabtitle = 'Mortgage Loans'
 sourceurl = 'https://www.kaggle.com/burak3ergun/loan-data-set'
-githublink = 'https://github.com/plotly-dash-apps/504-mortgage-loans-predictor'
+githublink = 'https://github.com/wendi-cui/504-mortgage-loans-predictor'
 
 
 ########### Model featurse
@@ -33,7 +33,7 @@ features = ['Credit_History',
 approved=pd.read_csv('model_components/approved_loans.csv')
 denied=pd.read_csv('model_components/denied_loans.csv')
 # random forest model
-filename = open('model_components/loan_approval_rf_model.pkl', 'rb')
+filename = open('model_components/loan_approval_gnb_model.pkl', 'rb')
 rf = pickle.load(filename)
 filename.close()
 # encoder1
