@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
 from dash.dependencies import Input, Output, State
+import traceback
 
 
 ########### Define your variables ######
@@ -32,7 +33,7 @@ features = ['Credit_History',
 # dataframes for visualization
 approved=pd.read_csv('model_components/approved_loans.csv')
 denied=pd.read_csv('model_components/denied_loans.csv')
-# random forest model
+# naive bayes model
 filename = open('model_components/loan_approval_gnb_model.pkl', 'rb')
 rf = pickle.load(filename)
 filename.close()
@@ -83,6 +84,7 @@ def make_predictions(listofargs, Threshold):
         ln_monthly_return_raw  = np.log(df['LoanAmount']/df['Loan_Amount_Term']).values
         ln_total_income_raw = np.log(int(df['ApplicantIncome']) + int(df['CoapplicantIncome']))
         ln_LoanAmount_raw = np.log(1000*df['LoanAmount'])
+
         df['ln_monthly_return'] = ss_scaler1.transform(np.array(ln_monthly_return_raw).reshape(-1, 1))
         df['ln_total_income'] = ss_scaler2.transform(np.array(ln_total_income_raw).reshape(-1, 1))
         df['ln_LoanAmount'] = ss_scaler3.transform(np.array(ln_LoanAmount_raw).reshape(-1, 1))
@@ -91,15 +93,19 @@ def make_predictions(listofargs, Threshold):
         df=df[['Gender', 'Education', 'Self_Employed', 'Credit_History',
            'Property_Area_Semiurban', 'Property_Area_Urban', 'Property_Area_Rural', 'ln_monthly_return',
            'ln_total_income', 'ln_LoanAmount']]
-
-        prob = rf.predict(df)
+        
+        print(df)
+        prob = rf.predict_proba(df)
+        print(prob)
         raw_approval_prob=prob[0][1]
         Threshold=Threshold*.01
         approval_func = lambda y: 'Approved' if raw_approval_prob>Threshold else 'Denied'
         formatted_denial_prob = "{:,.1f}%".format(100*prob[0][0])
         formatted_approval_prob = "{:,.1f}%".format(100*prob[0][1])
         return approval_func(raw_approval_prob), formatted_approval_prob, formatted_denial_prob        # return list(df.columns), list(df.columns), str(df.head().values)
-    except:
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
         return 'Invalid inputs','Invalid inputs','Invalid inputs'
 
 
@@ -200,7 +206,7 @@ app.title=tabtitle
 ########### Set up the layout
 app.layout = html.Div(children=[
     html.H1(myheading1),
-
+    html.H3("this is a naive bayes model that firmly turns down any loan"),
     html.Div([
         html.Div(
             [dcc.Graph(id='fig1',style={'width': '90vh', 'height': '90vh'}),
